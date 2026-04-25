@@ -88,7 +88,6 @@ function render() {
             <button class="delete-btn">X</button>
           `;
         } else {
-          // activity (also handles old entries without a type field)
           div.className = "card";
           div.innerHTML = `
             <span>${item.time} - ${item.activity}</span>
@@ -120,17 +119,18 @@ async function updateMap() {
   for (let day of ["day1", "day2", "day3"]) {
     for (let item of schedule[day]) {
 
-      // skip notes — only activities get pins
+      // skip notes
       if (item.type === "note") continue;
 
       let lat, lon;
       const coords = extractCoords(item.mapLink);
 
       if (coords) {
+        // Link provided and coords extracted successfully
         lat = coords.lat;
         lon = coords.lon;
-      } else {
-        // fallback: search by place name
+      } else if (!item.mapLink) {
+        // No link provided — fallback to name search
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity)}`
@@ -145,6 +145,9 @@ async function updateMap() {
         } catch {
           continue;
         }
+      } else {
+        // Link was provided but coords couldn't be extracted — skip, don't guess
+        continue;
       }
 
       if (lat && lon) {
