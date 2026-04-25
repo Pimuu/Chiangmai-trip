@@ -2,59 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chiang Mai Trip Planner</title>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
 <header>
-  <h1>Chiang Mai Trip Planner</h1>
-  <p>3 Days 2 Nights</p>
-  <a href="expense.html" class="nav-btn">💰 Expense Tracker</a>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>Chiang Mai</h1>
+      <p>3 Days · 2 Nights · Trip Planner</p>
+    </div>
+    <a href="expense.html" class="nav-btn">💰 Expenses</a>
+  </div>
 </header>
 
 <div class="container">
+
   <section class="controls">
-    <h2>Add Plan</h2>
-
-    <select id="day">
-      <option value="day1">Day 1</option>
-      <option value="day2">Day 2</option>
-      <option value="day3">Day 3</option>
-    </select>
-
-    <input type="time" id="time">
-    <input type="text" id="activity" placeholder="Place name">
-    <input type="text" id="mapLink" placeholder="Google Maps link">
-    <input type="text" id="note" placeholder="Travel note">
-
-    <button id="addBtn">➕ Add Activity</button>
-    <button id="addNoteBtn">🚌 Add Travel Note</button>
+    <h2>Add to Schedule</h2>
+    <div class="form-grid">
+      <select id="day">
+        <option value="day1">Day 1</option>
+        <option value="day2">Day 2</option>
+        <option value="day3">Day 3</option>
+      </select>
+      <input type="time" id="time">
+      <input type="text" id="activity" placeholder="Place name">
+      <input type="text" id="mapLink" placeholder="Google Maps link (optional)">
+      <input type="text" id="note" placeholder="Travel note (bus, taxi, walk...)">
+    </div>
+    <div class="btn-row">
+      <button id="addBtn">➕ Add Activity</button>
+      <button id="addNoteBtn" class="btn-secondary">🚌 Add Travel Note</button>
+    </div>
   </section>
 
   <section class="timeline">
     <h2>Schedule</h2>
-
-    <h3>Day 1</h3>
-    <div id="day1"></div>
-
-    <h3>Day 2</h3>
-    <div id="day2"></div>
-
-    <h3>Day 3</h3>
-    <div id="day3"></div>
+    <div class="day-block">
+      <h3>📅 Day 1</h3>
+      <div id="day1"></div>
+    </div>
+    <div class="day-block">
+      <h3>📅 Day 2</h3>
+      <div id="day2"></div>
+    </div>
+    <div class="day-block">
+      <h3>📅 Day 3</h3>
+      <div id="day3"></div>
+    </div>
   </section>
 
   <div id="map"></div>
-  <a id="routeBtn" target="_blank">🚗 Open Route</a>
+  <a id="routeBtn" target="_blank" style="display:none">🗺️ Open Full Route in Google Maps</a>
+
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<!-- 🔥 IMPORTANT -->
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
