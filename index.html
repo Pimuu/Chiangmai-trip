@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Chiang Mai Trip Planner</title>
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,11 +13,11 @@
 <header>
   <h1>Chiang Mai Trip Planner</h1>
   <p>3 Days 2 Nights</p>
+  <a href="expense.html" class="nav-btn">💰 Expense Tracker</a>
 </header>
 
 <div class="container">
 
-  <!-- ADD -->
   <section class="controls">
     <h2>Add Activity</h2>
 
@@ -31,11 +30,11 @@
     <input type="time" id="time">
     <input type="text" id="activity" placeholder="Place name">
     <input type="text" id="mapLink" placeholder="Google Maps link">
+    <input type="text" id="note" placeholder="Note (e.g. take bus)">
 
     <button id="addBtn">Add</button>
   </section>
 
-  <!-- TIMELINE -->
   <section class="timeline">
     <h2>Schedule</h2>
 
@@ -49,10 +48,8 @@
     <div id="day3"></div>
   </section>
 
-  <!-- MAP -->
   <div id="map"></div>
 
-  <!-- ROUTE -->
   <a id="routeBtn" target="_blank">🚗 Open Route in Google Maps</a>
 
 </div>
