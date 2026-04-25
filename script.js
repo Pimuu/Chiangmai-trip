@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── Firebase config (Chiangmai-trip) ──────────────────────
 const firebaseConfig = {
@@ -17,9 +17,61 @@ const tripRef = doc(db, "trips", "chiang-mai");
 
 // ── Local state ───────────────────────────────────────────
 let schedule = { day1: [], day2: [], day3: [] };
+let dataLoaded = false; // guard: don't save until first load is done
+
+// ── Map init ──────────────────────────────────────────────
+const map = L.map('map').setView([18.7883, 98.9853], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+let markers = [];
+
+// ── Show loading state ────────────────────────────────────
+["day1","day2","day3"].forEach(day => {
+  const container = document.getElementById(day);
+  container.innerHTML = `<div class="empty-msg">⏳ Loading...</div>`;
+});
+
+// ── Initial load via getDoc (fast, one-time) ──────────────
+// This is the key fix: getDoc fetches immediately on refresh
+// instead of waiting for the slower onSnapshot connection
+async function initialLoad() {
+  try {
+    const snap = await getDoc(tripRef);
+    if (snap.exists()) {
+      schedule = snap.data();
+      ["day1","day2","day3"].forEach(d => {
+        if (!schedule[d]) schedule[d] = [];
+      });
+    }
+  } catch (e) {
+    console.error("Initial load failed:", e);
+    showToast("❌ Could not load data — check Firestore rules");
+  }
+  dataLoaded = true;
+  render();
+}
+
+initialLoad();
+
+// ── Real-time listener — keeps all devices in sync ────────
+// Fires after the initial load; updates UI when another
+// device makes a change
+onSnapshot(tripRef, (snap) => {
+  if (!dataLoaded) return; // wait for initialLoad to finish first
+  if (snap.exists()) {
+    schedule = snap.data();
+    ["day1","day2","day3"].forEach(d => {
+      if (!schedule[d]) schedule[d] = [];
+    });
+    render();
+  }
+});
 
 // ── Save to Firestore ─────────────────────────────────────
 async function saveData() {
+  if (!dataLoaded) return; // safety guard
   try {
     await setDoc(tripRef, schedule);
     showToast("✅ Saved & synced");
@@ -28,26 +80,6 @@ async function saveData() {
     showToast("❌ Save failed — check connection");
   }
 }
-
-// ── Real-time listener — syncs all devices instantly ──────
-onSnapshot(tripRef, (snap) => {
-  if (snap.exists()) {
-    schedule = snap.data();
-    ["day1", "day2", "day3"].forEach(d => {
-      if (!schedule[d]) schedule[d] = [];
-    });
-  }
-  render();
-});
-
-// ── Map init ──────────────────────────────────────────────
-const map = L.map('map').setView([18.7883, 98.9853], 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '© OpenStreetMap'
-}).addTo(map);
-
-let markers = [];
 
 // ── Extract coords from Google Maps link ──────────────────
 function extractCoords(link) {
@@ -138,7 +170,6 @@ function render() {
       }
 
       div.querySelector(".delete-btn").onclick = () => {
-        // Find and remove the matching entry from the original array
         const idx = schedule[day].findIndex(el =>
           el.time === item.time &&
           el.type === item.type &&
@@ -176,7 +207,6 @@ async function updateMap() {
         lat = coords.lat;
         lon = coords.lon;
       } else if (!item.mapLink) {
-        // No link — search by name near Chiang Mai
         try {
           const res  = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity + " Chiang Mai")}`
@@ -188,7 +218,7 @@ async function updateMap() {
           } else continue;
         } catch { continue; }
       } else {
-        continue; // link provided but unreadable — skip
+        continue;
       }
 
       if (lat && lon) {
