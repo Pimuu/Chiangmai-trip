@@ -1,26 +1,59 @@
-<section class="controls">
-  <h2>Add Activity</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trip Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-  <select id="day">
-    <option value="day1">Day 1 (Chiang Mai)</option>
-    <option value="day2">Day 2 (Mae Kampong)</option>
-    <option value="day3">Day 3 (Return)</option>
-  </select>
+<body>
 
-  <input type="time" id="time">
-  <input type="text" id="activity" placeholder="Enter activity">
-  <button onclick="addActivity()">Add</button>
-</section>
+<header>
+  <h1>Chiang Mai Trip Planner</h1>
+  <p>3 Days 2 Nights</p>
+</header>
 
-<section class="timeline">
-  <h2>Schedule</h2>
+<div class="container">
 
-  <h3>Day 1</h3>
-  <div id="day1"></div>
+  <section class="controls">
+    <h2>Add Activity</h2>
 
-  <h3>Day 2</h3>
-  <div id="day2"></div>
+    <select id="day">
+      <option value="day1">Day 1 (Chiang Mai)</option>
+      <option value="day2">Day 2 (Mae Kampong)</option>
+      <option value="day3">Day 3</option>
+    </select>
 
-  <h3>Day 3</h3>
-  <div id="day3"></div>
-</section>
+    <input type="time" id="time">
+    <input type="text" id="activity" placeholder="Activity">
+    <input type="text" id="mapLink" placeholder="Google Maps link">
+
+    <button onclick="addActivity()">Add</button>
+  </section>
+
+  <section class="timeline">
+    <h2>Schedule</h2>
+
+    <h3>Day 1</h3>
+    <div id="day1"></div>
+
+    <h3>Day 2</h3>
+    <div id="day2"></div>
+
+    <h3>Day 3</h3>
+    <div id="day3"></div>
+  </section>
+
+  <section class="map-container">
+    <h2>Map</h2>
+    <iframe id="mapFrame"
+      src="https://maps.google.com/maps?q=chiang%20mai&output=embed">
+    </iframe>
+  </section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
