@@ -6,7 +6,6 @@
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,7 +13,7 @@
 
 <header>
   <h1>Chiang Mai Trip Planner</h1>
-  <p>3 Days 2 Nights Planner</p>
+  <p>3 Days 2 Nights</p>
 </header>
 
 <div class="container">
@@ -24,13 +23,14 @@
     <h2>Add Activity</h2>
 
     <select id="day">
-      <option value="day1">Day 1 (City)</option>
-      <option value="day2">Day 2 (Mae Kampong)</option>
+      <option value="day1">Day 1</option>
+      <option value="day2">Day 2</option>
       <option value="day3">Day 3</option>
     </select>
 
     <input type="time" id="time">
-    <input type="text" id="activity" placeholder="Place (e.g. Mae Kampong waterfall)">
+    <input type="text" id="activity" placeholder="Place name">
+    <input type="text" id="mapLink" placeholder="Google Maps link">
 
     <button id="addBtn">Add</button>
   </section>
@@ -52,8 +52,8 @@
   <!-- MAP -->
   <div id="map"></div>
 
-  <!-- ROUTE BUTTON -->
-  <a id="routeBtn" target="_blank">🚗 Open Full Route in Google Maps</a>
+  <!-- ROUTE -->
+  <a id="routeBtn" target="_blank">🚗 Open Route in Google Maps</a>
 
 </div>
 
