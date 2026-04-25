@@ -1,9 +1,15 @@
-let schedule = {
+// LOAD DATA
+let schedule = JSON.parse(localStorage.getItem("trip")) || {
   day1: [],
   day2: [],
   day3: []
 };
 
+function saveData() {
+  localStorage.setItem("trip", JSON.stringify(schedule));
+}
+
+// MAP INIT
 const map = L.map('map').setView([18.7883, 98.9853], 11);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -13,53 +19,60 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let markers = [];
 let polyline;
 
-// ADD BUTTON FIX
+// ADD
 document.getElementById("addBtn").addEventListener("click", () => {
   const day = document.getElementById("day").value;
   const time = document.getElementById("time").value;
   const activity = document.getElementById("activity").value;
 
   if (!time || !activity) {
-    alert("Fill all fields");
+    alert("Please fill all fields");
     return;
   }
 
   schedule[day].push({ time, activity });
 
+  saveData();
   render();
 });
 
+// RENDER
 function render() {
   ["day1", "day2", "day3"].forEach(day => {
     const container = document.getElementById(day);
     container.innerHTML = "";
 
-    schedule[day].forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "card";
+    schedule[day]
+      .sort((a, b) => a.time.localeCompare(b.time))
+      .forEach((item, index) => {
 
-      div.innerHTML = `
-        <span>${item.time} - ${item.activity}</span>
-        <button class="delete-btn">X</button>
-      `;
+        const div = document.createElement("div");
+        div.className = "card";
 
-      div.querySelector(".delete-btn").onclick = () => {
-        schedule[day].splice(index, 1);
-        render();
-      };
+        div.innerHTML = `
+          <span>${item.time} - ${item.activity}</span>
+          <button class="delete-btn">X</button>
+        `;
 
-      container.appendChild(div);
-    });
+        div.querySelector(".delete-btn").onclick = () => {
+          schedule[day].splice(index, 1);
+          saveData();
+          render();
+        };
+
+        container.appendChild(div);
+      });
   });
 
   updateMap();
 }
 
+// MAP UPDATE
 async function updateMap() {
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
-  let coords = [];
+  let names = [];
 
   for (let day of ["day1", "day2", "day3"]) {
     for (let item of schedule[day]) {
@@ -71,20 +84,24 @@ async function updateMap() {
         const lat = data[0].lat;
         const lon = data[0].lon;
 
-        const marker = L.marker([lat, lon]).addTo(map);
-        markers.push(marker);
+        const marker = L.marker([lat, lon]).addTo(map)
+          .bindPopup(item.activity);
 
-        coords.push([lat, lon]);
+        markers.push(marker);
+        names.push(item.activity);
       }
     }
   }
 
-  if (polyline) map.removeLayer(polyline);
+  // GOOGLE ROUTE
+  if (names.length > 1) {
+    const url = `https://www.google.com/maps/dir/${names.join("/")}`;
+    const btn = document.getElementById("routeBtn");
 
-  if (coords.length > 1) {
-    polyline = L.polyline(coords).addTo(map);
-    map.fitBounds(polyline.getBounds());
+    btn.href = url;
+    btn.style.display = "block";
   }
 }
 
+// START
 render();
