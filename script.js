@@ -1,16 +1,13 @@
 let schedule = {
   day1: [
-    { time: "07:30", activity: "Arrive Chiang Mai (train)" },
-    { time: "08:30", activity: "Drop luggage at hotel" },
-    { time: "10:00", activity: "Breakfast / café" }
+    {
+      time: "10:00",
+      activity: "Cafe in Nimman",
+      map: "https://maps.google.com?q=nimmanhaemin"
+    }
   ],
-  day2: [
-    { time: "09:30", activity: "Travel to Mae Kampong" },
-    { time: "11:00", activity: "Check-in homestay" }
-  ],
-  day3: [
-    { time: "14:00", activity: "Leave Mae Kampong" }
-  ]
+  day2: [],
+  day3: []
 };
 
 function displaySchedule() {
@@ -23,7 +20,14 @@ function displaySchedule() {
     schedule[day].forEach(item => {
       const div = document.createElement("div");
       div.className = "card";
+
       div.innerHTML = `<strong>${item.time}</strong> - ${item.activity}`;
+
+      // 👇 click to update map
+      div.onclick = () => {
+        updateMap(item.map);
+      };
+
       container.appendChild(div);
     });
   });
@@ -33,11 +37,21 @@ function addActivity() {
   const day = document.getElementById("day").value;
   const time = document.getElementById("time").value;
   const activity = document.getElementById("activity").value;
+  const map = document.getElementById("mapLink").value;
 
-  if (time && activity) {
-    schedule[day].push({ time, activity });
+  if (time && activity && map) {
+    schedule[day].push({ time, activity, map });
     displaySchedule();
   }
+}
+
+function updateMap(link) {
+  const iframe = document.getElementById("mapFrame");
+
+  // convert normal link → embed
+  const embed = link.replace("https://www.google.com/maps", "https://maps.google.com/maps") + "&output=embed";
+
+  iframe.src = embed;
 }
 
 displaySchedule();
