@@ -29,10 +29,16 @@ const noteInput = document.getElementById("note");
 function extractCoords(link) {
   if (!link) return null;
 
+  // Pattern 1: @lat,lon (standard map view)
   let match = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
 
+  // Pattern 2: q=lat,lon (search/directions)
   match = link.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
+
+  // Pattern 3: !3d<lat>!4d<lon> (place URLs — long share links)
+  match = link.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
   if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
 
   return null;
@@ -140,7 +146,7 @@ async function updateMap() {
   for (let day of ["day1", "day2", "day3"]) {
     for (let item of schedule[day]) {
 
-      // ❌ skip notes
+      // skip notes
       if (item.type !== "activity") continue;
 
       let lat, lon;
@@ -152,7 +158,7 @@ async function updateMap() {
         lat = coords.lat;
         lon = coords.lon;
       } else {
-        // ✅ fallback search (IMPORTANT FIX)
+        // fallback: search by place name
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity)}`
@@ -183,16 +189,15 @@ async function updateMap() {
     }
   }
 
-  // auto zoom
+  // auto zoom to fit all markers
   if (bounds.length > 0) {
     map.fitBounds(bounds, { padding: [50, 50] });
   }
 
   // route button
   if (names.length > 1) {
-    const url = `https://www.google.com/maps/dir/${names.join("/")}`;
+    const url = `https://www.google.com/maps/dir/${names.map(n => encodeURIComponent(n)).join("/")}`;
     const btn = document.getElementById("routeBtn");
-
     btn.href = url;
     btn.style.display = "block";
   }
