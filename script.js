@@ -16,7 +16,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markers = [];
 
-// Extract coordinates
+const daySelect = document.getElementById("day");
+const timeInput = document.getElementById("time");
+const activityInput = document.getElementById("activity");
+const mapLinkInput = document.getElementById("mapLink");
+const noteInput = document.getElementById("note");
+
 function extractCoords(link) {
   if (!link) return null;
 
@@ -29,24 +34,43 @@ function extractCoords(link) {
   return null;
 }
 
-// ADD
-document.getElementById("addBtn").addEventListener("click", () => {
-  const day = document.getElementById("day").value;
-  const time = document.getElementById("time").value;
-  const activity = document.getElementById("activity").value;
-  const mapLink = document.getElementById("mapLink").value;
-  const note = document.getElementById("note").value;
+// ADD ACTIVITY
+document.getElementById("addBtn").onclick = () => {
+  const day = daySelect.value;
+  const time = timeInput.value;
+  const activity = activityInput.value;
+  const mapLink = mapLinkInput.value;
 
-  if (!time || !activity) {
-    alert("Fill all fields");
-    return;
-  }
+  if (!time || !activity) return alert("Fill all fields");
 
-  schedule[day].push({ time, activity, mapLink, note });
+  schedule[day].push({
+    type: "activity",
+    time,
+    activity,
+    mapLink
+  });
 
   saveData();
   render();
-});
+};
+
+// ADD NOTE
+document.getElementById("addNoteBtn").onclick = () => {
+  const day = daySelect.value;
+  const time = timeInput.value;
+  const note = noteInput.value;
+
+  if (!time || !note) return alert("Fill note");
+
+  schedule[day].push({
+    type: "note",
+    time,
+    note
+  });
+
+  saveData();
+  render();
+};
 
 // RENDER
 function render() {
@@ -59,15 +83,22 @@ function render() {
       .forEach((item,index)=>{
 
         const div = document.createElement("div");
-        div.className = "card";
 
-        div.innerHTML = `
-          <div>
-            <strong>${item.time}</strong> - ${item.activity}
-            ${item.note ? `<br><small>📝 ${item.note}</small>` : ""}
-          </div>
-          <button class="delete-btn">X</button>
-        `;
+        if (item.type === "activity") {
+          div.className = "card";
+          div.innerHTML = `
+            <div><strong>${item.time}</strong> - ${item.activity}</div>
+            <button class="delete-btn">X</button>
+          `;
+        }
+
+        if (item.type === "note") {
+          div.className = "note-card";
+          div.innerHTML = `
+            <div>🚌 ${item.time} - ${item.note}</div>
+            <button class="delete-btn">X</button>
+          `;
+        }
 
         div.querySelector(".delete-btn").onclick = () => {
           schedule[day].splice(index,1);
@@ -93,25 +124,19 @@ async function updateMap() {
   for (let day of ["day1","day2","day3"]) {
     for (let item of schedule[day]) {
 
-      if (!item.mapLink) continue; // skip notes-only
+      if (item.type !== "activity") continue;
+      if (!item.mapLink) continue;
 
       let coords = extractCoords(item.mapLink);
-      let lat, lon;
+      if (!coords) continue;
 
-      if (coords) {
-        lat = coords.lat;
-        lon = coords.lon;
-      }
+      const marker = L.marker([coords.lat, coords.lon])
+        .addTo(map)
+        .bindPopup(item.activity);
 
-      if (lat && lon) {
-        const marker = L.marker([lat, lon])
-          .addTo(map)
-          .bindPopup(`<b>${item.activity}</b><br>${item.time}`);
-
-        markers.push(marker);
-        bounds.push([lat, lon]);
-        names.push(item.activity);
-      }
+      markers.push(marker);
+      bounds.push([coords.lat, coords.lon]);
+      names.push(item.activity);
     }
   }
 
