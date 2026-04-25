@@ -1,46 +1,52 @@
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
-function save() {
+function saveExpenses() {
   localStorage.setItem("expenses", JSON.stringify(expenses));
 }
 
 document.getElementById("addExpense").onclick = () => {
-  const name = expenseName.value;
-  const amount = parseFloat(amount.value);
-  const note = expenseNote.value;
+  const name = document.getElementById("expenseName").value;
+  const amountValue = parseFloat(document.getElementById("amount").value);
+  const note = document.getElementById("expenseNote").value;
 
-  if (!name || !amount) return alert("Fill all");
+  if (!name || !amountValue) return alert("Fill all fields");
 
-  expenses.push({ name, amount, note });
-  save();
-  render();
+  expenses.push({ name, amount: amountValue, note });
+
+  saveExpenses();
+  renderExpenses();
 };
 
-function render() {
-  expenseList.innerHTML = "";
+function renderExpenses() {
+  const list = document.getElementById("expenseList");
+  list.innerHTML = "";
+
   let total = 0;
 
-  expenses.forEach((e,i)=>{
-    total += e.amount;
+  expenses.forEach((item,index)=>{
+    total += item.amount;
 
     const div = document.createElement("div");
     div.className = "card";
 
     div.innerHTML = `
-      <div>${e.name} - ${e.amount} THB<br>${e.note || ""}</div>
-      <button>X</button>
+      <div>
+        <strong>${item.name}</strong> - ${item.amount} THB
+        ${item.note ? `<br><small>${item.note}</small>` : ""}
+      </div>
+      <button class="delete-btn">X</button>
     `;
 
-    div.querySelector("button").onclick = ()=>{
-      expenses.splice(i,1);
-      save();
-      render();
+    div.querySelector(".delete-btn").onclick = ()=>{
+      expenses.splice(index,1);
+      saveExpenses();
+      renderExpenses();
     };
 
-    expenseList.appendChild(div);
+    list.appendChild(div);
   });
 
   document.getElementById("total").innerText = "Total: " + total + " THB";
 }
 
-render();
+renderExpenses();
