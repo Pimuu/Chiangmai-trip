@@ -19,7 +19,7 @@
 <div class="container">
 
   <section class="controls">
-    <h2>Add Activity</h2>
+    <h2>Add Plan</h2>
 
     <select id="day">
       <option value="day1">Day 1</option>
@@ -30,11 +30,36 @@
     <input type="time" id="time">
     <input type="text" id="activity" placeholder="Place name">
     <input type="text" id="mapLink" placeholder="Google Maps link">
-    <input type="text" id="note" placeholder="Note (e.g. take bus)">
+    <input type="text" id="note" placeholder="Travel note (bus, taxi...)">
 
-    <button id="addBtn">Add</button>
+    <button id="addBtn">➕ Add Activity</button>
+    <button id="addNoteBtn">🚌 Add Travel Note</button>
   </section>
 
+  <section class="timeline">
+    <h2>Schedule</h2>
+
+    <h3>Day 1</h3>
+    <div id="day1"></div>
+
+    <h3>Day 2</h3>
+    <div id="day2"></div>
+
+    <h3>Day 3</h3>
+    <div id="day3"></div>
+  </section>
+
+  <div id="map"></div>
+
+  <a id="routeBtn" target="_blank">🚗 Open Route in Google Maps</a>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
   <section class="timeline">
     <h2>Schedule</h2>
 
