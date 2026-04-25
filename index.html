@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chiang Mai Trip Planner</title>
+  <title>Trip Planner</title>
+
+  <!-- Leaflet (MAP LIBRARY) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -10,52 +14,43 @@
 
 <header>
   <h1>Chiang Mai Trip Planner</h1>
-  <p>3 Days 2 Nights</p>
 </header>
 
 <div class="container">
 
-  <!-- ADD ACTIVITY -->
   <section class="controls">
     <h2>Add Activity</h2>
 
     <select id="day">
-      <option value="day1">Day 1 (Chiang Mai)</option>
-      <option value="day2">Day 2 (Mae Kampong)</option>
+      <option value="day1">Day 1</option>
+      <option value="day2">Day 2</option>
       <option value="day3">Day 3</option>
     </select>
 
     <input type="time" id="time">
-    <input type="text" id="activity" placeholder="Activity">
-    <input type="text" id="mapLink" placeholder="Google Maps link">
-
+    <input type="text" id="activity" placeholder="Place name (e.g. Mae Kampong)">
+    
     <button id="addBtn">Add</button>
   </section>
 
-  <!-- TIMELINE -->
   <section class="timeline">
     <h2>Schedule</h2>
 
     <h3>Day 1</h3>
-    <div id="day1"></div>
+    <div id="day1" class="dropzone"></div>
 
     <h3>Day 2</h3>
-    <div id="day2"></div>
+    <div id="day2" class="dropzone"></div>
 
     <h3>Day 3</h3>
-    <div id="day3"></div>
+    <div id="day3" class="dropzone"></div>
   </section>
 
-  <!-- MAP -->
-  <section class="map-container">
-    <h2>Map</h2>
-    <iframe id="mapFrame"
-      src="https://maps.google.com/maps?q=chiang%20mai&output=embed">
-    </iframe>
-  </section>
+  <div id="map"></div>
 
 </div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="script.js"></script>
 
 </body>
