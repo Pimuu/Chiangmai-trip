@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── Firebase config (Chiangmai-trip) ──────────────────────
 const firebaseConfig = {
@@ -16,9 +16,41 @@ const db  = getFirestore(app);
 const expenseRef = doc(db, "trips", "expenses");
 
 let expenses = [];
+let dataLoaded = false;
+
+// ── Show loading state ────────────────────────────────────
+document.getElementById("expenseList").innerHTML =
+  `<div class="empty-msg">⏳ Loading...</div>`;
+
+// ── Initial load via getDoc ───────────────────────────────
+async function initialLoad() {
+  try {
+    const snap = await getDoc(expenseRef);
+    if (snap.exists()) {
+      expenses = snap.data().list || [];
+    }
+  } catch (e) {
+    console.error("Initial load failed:", e);
+    showToast("❌ Could not load data — check Firestore rules");
+  }
+  dataLoaded = true;
+  renderExpenses();
+}
+
+initialLoad();
+
+// ── Real-time listener ────────────────────────────────────
+onSnapshot(expenseRef, (snap) => {
+  if (!dataLoaded) return;
+  if (snap.exists()) {
+    expenses = snap.data().list || [];
+    renderExpenses();
+  }
+});
 
 // ── Save to Firestore ─────────────────────────────────────
 async function saveExpenses() {
+  if (!dataLoaded) return;
   try {
     await setDoc(expenseRef, { list: expenses });
     showToast("✅ Saved & synced");
@@ -27,14 +59,6 @@ async function saveExpenses() {
     showToast("❌ Save failed — check connection");
   }
 }
-
-// ── Real-time listener ─────────────────────────────────────
-onSnapshot(expenseRef, (snap) => {
-  if (snap.exists()) {
-    expenses = snap.data().list || [];
-  }
-  renderExpenses();
-});
 
 // ── Add Expense ───────────────────────────────────────────
 document.getElementById("addExpense").onclick = () => {
