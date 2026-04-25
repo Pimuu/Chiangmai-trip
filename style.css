@@ -8,7 +8,7 @@ header {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   text-align: center;
-  padding: 50px;
+  padding: 40px;
 }
 
 .container {
@@ -17,7 +17,6 @@ header {
   padding: 20px;
 }
 
-/* INPUT BOX */
 .controls {
   background: white;
   padding: 20px;
@@ -41,7 +40,6 @@ button {
   cursor: pointer;
 }
 
-/* CARDS */
 .card {
   background: white;
   margin: 10px 0;
@@ -60,14 +58,12 @@ button {
   cursor: pointer;
 }
 
-/* MAP */
 #map {
   height: 400px;
   margin-top: 20px;
   border-radius: 15px;
 }
 
-/* ROUTE BUTTON */
 #routeBtn {
   display: none;
   margin-top: 15px;
