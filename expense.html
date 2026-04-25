@@ -1,30 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Expenses</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Expenses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
 <header>
-  <h1>Trip Expenses</h1>
-  <a href="index.html" class="nav-btn">⬅ Back</a>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>Expenses</h1>
+      <p>Trip budget tracker</p>
+    </div>
+    <a href="index.html" class="nav-btn">⬅ Back</a>
+  </div>
 </header>
 
 <div class="container">
+
   <section class="controls">
-    <input id="expenseName" placeholder="Name">
-    <input id="amount" type="number" placeholder="THB">
-    <input id="expenseNote" placeholder="Note">
-    <button id="addExpense">Add</button>
+    <h2>Add Expense</h2>
+    <div class="form-grid">
+      <input id="expenseName" placeholder="Item name">
+      <input id="amount" type="number" placeholder="Amount (THB)" min="0">
+      <input id="expenseNote" placeholder="Note (optional)" style="grid-column: 1 / -1">
+    </div>
+    <div class="btn-row">
+      <button id="addExpense">➕ Add Expense</button>
+    </div>
   </section>
 
-  <div id="expenseList"></div>
-  <h3 id="total"></h3>
+  <section class="timeline">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="margin-bottom:0">All Expenses</h2>
+      <div id="totalBadge" class="total-badge">Total: 0 THB</div>
+    </div>
+    <div id="expenseList"></div>
+  </section>
+
 </div>
 
-<!-- 🔥 IMPORTANT -->
-<script type="module" src="expense.js"></script>
+<div id="toast" class="toast"></div>
 
+<script type="module" src="expense.js"></script>
 </body>
 </html>
