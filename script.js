@@ -1,87 +1,126 @@
-// Store schedule per day
 let schedule = {
   day1: [],
   day2: [],
   day3: []
 };
 
-// Display all days
-function displaySchedule() {
+// MAP INIT
+const map = L.map('map').setView([18.7883, 98.9853], 11); // Chiang Mai
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+let markers = [];
+let polyline;
+
+// ADD ACTIVITY
+document.getElementById("addBtn").addEventListener("click", function (e) {
+  e.preventDefault(); // 🚨 prevent refresh
+
+  const day = document.getElementById("day").value;
+  const time = document.getElementById("time").value;
+  const activity = document.getElementById("activity").value;
+
+  if (!time || !activity) {
+    alert("Fill all fields");
+    return;
+  }
+
+  schedule[day].push({ time, activity });
+
+  render();
+});
+
+// RENDER UI
+function render() {
   ["day1", "day2", "day3"].forEach(day => {
     const container = document.getElementById(day);
     container.innerHTML = "";
 
-    schedule[day]
-      .sort((a, b) => a.time.localeCompare(b.time))
-      .forEach(item => {
+    schedule[day].forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.draggable = true;
 
-        const div = document.createElement("div");
-        div.className = "card";
+      div.innerHTML = `
+        <span><strong>${item.time}</strong> - ${item.activity}</span>
+        <button class="delete-btn">X</button>
+      `;
 
-        div.innerHTML = `<strong>${item.time}</strong> - ${item.activity}`;
+      // DELETE
+      div.querySelector(".delete-btn").onclick = () => {
+        schedule[day].splice(index, 1);
+        render();
+      };
 
-        // Click → update map
-        div.addEventListener("click", () => {
-          updateMap(item.map);
-        });
-
-        container.appendChild(div);
+      // DRAG
+      div.addEventListener("dragstart", () => {
+        div.classList.add("dragging");
+        dragged = { day, index };
       });
-  });
-}
 
-// Add activity
-function addActivity() {
-  const day = document.getElementById("day").value;
-  const time = document.getElementById("time").value;
-  const activity = document.getElementById("activity").value;
-  const map = document.getElementById("mapLink").value;
+      div.addEventListener("dragend", () => {
+        div.classList.remove("dragging");
+      });
 
-  // Validation
-  if (!time || !activity || !map) {
-    alert("Please fill all fields");
-    return;
-  }
+      container.appendChild(div);
+    });
 
-  schedule[day].push({ time, activity, map });
+    // DROP
+    container.ondragover = (e) => {
+      e.preventDefault();
+    };
 
-  displaySchedule();
+    container.ondrop = () => {
+      if (!dragged) return;
 
-  // Clear input
-  document.getElementById("time").value = "";
-  document.getElementById("activity").value = "";
-  document.getElementById("mapLink").value = "";
-}
+      const item = schedule[dragged.day].splice(dragged.index, 1)[0];
+      schedule[day].push(item);
 
-// Update map iframe
-function updateMap(link) {
-  const iframe = document.getElementById("mapFrame");
-
-  if (!link) return;
-
-  let embedLink;
-
-  if (link.includes("embed")) {
-    embedLink = link;
-  } else {
-    embedLink =
-      link.replace("https://www.google.com/maps", "https://maps.google.com/maps") +
-      "&output=embed";
-  }
-
-  iframe.src = embedLink;
-}
-
-// Attach button event AFTER page loads
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("addBtn").addEventListener("click", addActivity);
-
-  // Initial sample (so you see something)
-  schedule.day1.push({
-    time: "10:00",
-    activity: "Cafe in Nimman",
-    map: "https://www.google.com/maps?q=nimmanhaemin"
+      dragged = null;
+      render();
+    };
   });
 
-  displaySchedule();
-});
+  updateMap();
+}
+
+let dragged = null;
+
+// MAP UPDATE (with fake geocoding)
+async function updateMap() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  let coords = [];
+
+  for (let day of ["day1", "day2", "day3"]) {
+    for (let item of schedule[day]) {
+
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${item.activity}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.length > 0) {
+        const lat = data[0].lat;
+        const lon = data[0].lon;
+
+        const marker = L.marker([lat, lon]).addTo(map)
+          .bindPopup(item.activity);
+
+        markers.push(marker);
+        coords.push([lat, lon]);
+      }
+    }
+  }
+
+  if (polyline) map.removeLayer(polyline);
+
+  if (coords.length > 1) {
+    polyline = L.polyline(coords, { color: 'blue' }).addTo(map);
+    map.fitBounds(polyline.getBounds());
+  }
+}
+
+render();
