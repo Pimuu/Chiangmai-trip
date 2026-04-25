@@ -17,20 +17,37 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let markers = [];
-let polyline;
+
+// EXTRACT COORDS FROM GOOGLE MAPS LINK
+function extractCoords(link) {
+  if (!link) return null;
+
+  let match = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (match) {
+    return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
+  }
+
+  match = link.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (match) {
+    return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
+  }
+
+  return null;
+}
 
 // ADD
 document.getElementById("addBtn").addEventListener("click", () => {
   const day = document.getElementById("day").value;
   const time = document.getElementById("time").value;
   const activity = document.getElementById("activity").value;
+  const mapLink = document.getElementById("mapLink").value;
 
   if (!time || !activity) {
     alert("Please fill all fields");
     return;
   }
 
-  schedule[day].push({ time, activity });
+  schedule[day].push({ time, activity, mapLink });
 
   saveData();
   render();
@@ -67,33 +84,55 @@ function render() {
   updateMap();
 }
 
-// MAP UPDATE
+// UPDATE MAP
 async function updateMap() {
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
+  let bounds = [];
   let names = [];
 
   for (let day of ["day1", "day2", "day3"]) {
     for (let item of schedule[day]) {
 
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${item.activity}`);
-      const data = await res.json();
+      let coords = extractCoords(item.mapLink);
 
-      if (data.length > 0) {
-        const lat = data[0].lat;
-        const lon = data[0].lon;
+      let lat, lon;
 
-        const marker = L.marker([lat, lon]).addTo(map)
-          .bindPopup(item.activity);
+      if (coords) {
+        lat = coords.lat;
+        lon = coords.lon;
+      } else {
+        // fallback search
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity)}`
+        );
+        const data = await res.json();
+
+        if (data.length > 0) {
+          lat = parseFloat(data[0].lat);
+          lon = parseFloat(data[0].lon);
+        }
+      }
+
+      if (lat && lon) {
+        const marker = L.marker([lat, lon])
+          .addTo(map)
+          .bindPopup(`<b>${item.activity}</b><br>${item.time}`);
 
         markers.push(marker);
+        bounds.push([lat, lon]);
         names.push(item.activity);
       }
     }
   }
 
-  // GOOGLE ROUTE
+  // Zoom map
+  if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
+
+  // Google route button
   if (names.length > 1) {
     const url = `https://www.google.com/maps/dir/${names.join("/")}`;
     const btn = document.getElementById("routeBtn");
