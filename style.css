@@ -32,7 +32,8 @@ header {
 }
 
 button {
-  padding: 10px 15px;
+  padding: 10px;
+  margin: 5px;
   border-radius: 8px;
   border: none;
   background: #667eea;
@@ -48,6 +49,15 @@ button {
   display: flex;
   justify-content: space-between;
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.note-card {
+  background: #fff3cd;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .delete-btn {
