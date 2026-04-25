@@ -18,26 +18,19 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markers = [];
 
-// INPUT REFERENCES
-const daySelect = document.getElementById("day");
-const timeInput = document.getElementById("time");
-const activityInput = document.getElementById("activity");
-const mapLinkInput = document.getElementById("mapLink");
-const noteInput = document.getElementById("note");
-
-// EXTRACT COORDS FROM GOOGLE MAP LINK
+// EXTRACT COORDS FROM GOOGLE MAPS LINK
 function extractCoords(link) {
   if (!link) return null;
 
-  // Pattern 1: @lat,lon (standard map view)
+  // Pattern 1: @lat,lon
   let match = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
 
-  // Pattern 2: q=lat,lon (search/directions)
+  // Pattern 2: q=lat,lon
   match = link.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
   if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
 
-  // Pattern 3: !3d<lat>!4d<lon> (place URLs — long share links)
+  // Pattern 3: !3d<lat>!4d<lon> (long place share URLs)
   match = link.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
   if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
 
@@ -45,50 +38,39 @@ function extractCoords(link) {
 }
 
 // ADD ACTIVITY
-document.getElementById("addBtn").onclick = () => {
-  const day = daySelect.value;
-  const time = timeInput.value;
-  const activity = activityInput.value;
-  const mapLink = mapLinkInput.value;
+document.getElementById("addBtn").addEventListener("click", () => {
+  const day = document.getElementById("day").value;
+  const time = document.getElementById("time").value;
+  const activity = document.getElementById("activity").value;
+  const mapLink = document.getElementById("mapLink").value;
 
   if (!time || !activity) {
-    alert("Fill all fields");
+    alert("Please fill time and place name");
     return;
   }
 
-  schedule[day].push({
-    type: "activity",
-    time,
-    activity,
-    mapLink
-  });
-
+  schedule[day].push({ type: "activity", time, activity, mapLink });
   saveData();
   render();
-};
+});
 
 // ADD TRAVEL NOTE
-document.getElementById("addNoteBtn").onclick = () => {
-  const day = daySelect.value;
-  const time = timeInput.value;
-  const note = noteInput.value;
+document.getElementById("addNoteBtn").addEventListener("click", () => {
+  const day = document.getElementById("day").value;
+  const time = document.getElementById("time").value;
+  const note = document.getElementById("note").value;
 
   if (!time || !note) {
-    alert("Fill note");
+    alert("Please fill time and note");
     return;
   }
 
-  schedule[day].push({
-    type: "note",
-    time,
-    note
-  });
-
+  schedule[day].push({ type: "note", time, note });
   saveData();
   render();
-};
+});
 
-// RENDER TIMELINE
+// RENDER
 function render() {
   ["day1", "day2", "day3"].forEach(day => {
     const container = document.getElementById(day);
@@ -97,30 +79,23 @@ function render() {
     schedule[day]
       .sort((a, b) => a.time.localeCompare(b.time))
       .forEach((item, index) => {
-
         const div = document.createElement("div");
 
-        // ACTIVITY CARD
-        if (item.type === "activity") {
-          div.className = "card";
-          div.innerHTML = `
-            <div>
-              <strong>${item.time}</strong> - ${item.activity}
-            </div>
-            <button class="delete-btn">X</button>
-          `;
-        }
-
-        // NOTE CARD
         if (item.type === "note") {
           div.className = "note-card";
           div.innerHTML = `
-            <div>🚌 ${item.time} - ${item.note}</div>
+            <span>🚌 ${item.time} - ${item.note}</span>
+            <button class="delete-btn">X</button>
+          `;
+        } else {
+          // activity (also handles old entries without a type field)
+          div.className = "card";
+          div.innerHTML = `
+            <span>${item.time} - ${item.activity}</span>
             <button class="delete-btn">X</button>
           `;
         }
 
-        // DELETE
         div.querySelector(".delete-btn").onclick = () => {
           schedule[day].splice(index, 1);
           saveData();
@@ -136,7 +111,6 @@ function render() {
 
 // UPDATE MAP
 async function updateMap() {
-  // remove old markers
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
@@ -146,13 +120,11 @@ async function updateMap() {
   for (let day of ["day1", "day2", "day3"]) {
     for (let item of schedule[day]) {
 
-      // skip notes
-      if (item.type !== "activity") continue;
+      // skip notes — only activities get pins
+      if (item.type === "note") continue;
 
       let lat, lon;
-
-      // try extract from link
-      let coords = extractCoords(item.mapLink);
+      const coords = extractCoords(item.mapLink);
 
       if (coords) {
         lat = coords.lat;
@@ -164,7 +136,6 @@ async function updateMap() {
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity)}`
           );
           const data = await res.json();
-
           if (data.length > 0) {
             lat = parseFloat(data[0].lat);
             lon = parseFloat(data[0].lon);
@@ -176,12 +147,10 @@ async function updateMap() {
         }
       }
 
-      // add marker
       if (lat && lon) {
         const marker = L.marker([lat, lon])
           .addTo(map)
           .bindPopup(`<b>${item.activity}</b><br>${item.time}`);
-
         markers.push(marker);
         bounds.push([lat, lon]);
         names.push(item.activity);
@@ -189,12 +158,10 @@ async function updateMap() {
     }
   }
 
-  // auto zoom to fit all markers
   if (bounds.length > 0) {
     map.fitBounds(bounds, { padding: [50, 50] });
   }
 
-  // route button
   if (names.length > 1) {
     const url = `https://www.google.com/maps/dir/${names.map(n => encodeURIComponent(n)).join("/")}`;
     const btn = document.getElementById("routeBtn");
