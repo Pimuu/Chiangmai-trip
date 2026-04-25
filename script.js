@@ -1,177 +1,93 @@
-// LOAD DATA
-let schedule = JSON.parse(localStorage.getItem("trip")) || {
-  day1: [],
-  day2: [],
-  day3: []
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔴 PUT YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
 };
 
-function saveData() {
-  localStorage.setItem("trip", JSON.stringify(schedule));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tripRef = doc(db, "trips", "chiang-mai");
+
+let schedule = { day1: [], day2: [], day3: [] };
+
+// SAVE
+async function saveData() {
+  await setDoc(tripRef, schedule);
 }
 
-// MAP INIT
-const map = L.map('map').setView([18.7883, 98.9853], 11);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
-}).addTo(map);
-
-let markers = [];
-
-// EXTRACT COORDS FROM GOOGLE MAPS LINK
-function extractCoords(link) {
-  if (!link) return null;
-
-  // Pattern 1: @lat,lon
-  let match = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
-
-  // Pattern 2: q=lat,lon
-  match = link.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
-
-  // Pattern 3: !3d<lat>!4d<lon> (long place share URLs)
-  match = link.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-  if (match) return { lat: parseFloat(match[1]), lon: parseFloat(match[2]) };
-
-  return null;
-}
+// LOAD (REALTIME SYNC)
+onSnapshot(tripRef, (snap) => {
+  if (snap.exists()) {
+    schedule = snap.data();
+  }
+  render();
+});
 
 // ADD ACTIVITY
-document.getElementById("addBtn").addEventListener("click", () => {
+document.getElementById("addBtn").onclick = () => {
   const day = document.getElementById("day").value;
   const time = document.getElementById("time").value;
   const activity = document.getElementById("activity").value;
   const mapLink = document.getElementById("mapLink").value;
 
-  if (!time || !activity) {
-    alert("Please fill time and place name");
-    return;
-  }
+  if (!time || !activity) return alert("Fill required fields");
 
-  schedule[day].push({ type: "activity", time, activity, mapLink });
+  schedule[day].push({ time, activity, mapLink });
   saveData();
-  render();
-});
+};
 
-// ADD TRAVEL NOTE
-document.getElementById("addNoteBtn").addEventListener("click", () => {
+// ADD NOTE
+document.getElementById("addNoteBtn").onclick = () => {
   const day = document.getElementById("day").value;
-  const time = document.getElementById("time").value;
   const note = document.getElementById("note").value;
 
-  if (!time || !note) {
-    alert("Please fill time and note");
-    return;
-  }
+  if (!note) return;
 
-  schedule[day].push({ type: "note", time, note });
+  schedule[day].push({ note });
   saveData();
-  render();
-});
+};
 
-// RENDER
+// RENDER UI
 function render() {
   ["day1", "day2", "day3"].forEach(day => {
     const container = document.getElementById(day);
     container.innerHTML = "";
 
-    schedule[day]
-      .sort((a, b) => a.time.localeCompare(b.time))
-      .forEach((item, index) => {
-        const div = document.createElement("div");
+    schedule[day].forEach((item, index) => {
+      const div = document.createElement("div");
 
-        if (item.type === "note") {
-          div.className = "note-card";
-          div.innerHTML = `
-            <span>🚌 ${item.time} - ${item.note}</span>
-            <button class="delete-btn">X</button>
-          `;
-        } else {
-          div.className = "card";
-          div.innerHTML = `
-            <span>${item.time} - ${item.activity}</span>
-            <button class="delete-btn">X</button>
-          `;
-        }
-
-        div.querySelector(".delete-btn").onclick = () => {
-          schedule[day].splice(index, 1);
-          saveData();
-          render();
-        };
-
-        container.appendChild(div);
-      });
-  });
-
-  updateMap();
-}
-
-// UPDATE MAP
-async function updateMap() {
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  let bounds = [];
-  let names = [];
-
-  for (let day of ["day1", "day2", "day3"]) {
-    for (let item of schedule[day]) {
-
-      // skip notes
-      if (item.type === "note") continue;
-
-      let lat, lon;
-      const coords = extractCoords(item.mapLink);
-
-      if (coords) {
-        // Link provided and coords extracted successfully
-        lat = coords.lat;
-        lon = coords.lon;
-      } else if (!item.mapLink) {
-        // No link provided — fallback to name search
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.activity)}`
-          );
-          const data = await res.json();
-          if (data.length > 0) {
-            lat = parseFloat(data[0].lat);
-            lon = parseFloat(data[0].lon);
-          } else {
-            continue;
-          }
-        } catch {
-          continue;
-        }
+      if (item.note) {
+        div.className = "note-card";
+        div.innerHTML = `
+          <div>${item.note}</div>
+          <button class="delete-btn">X</button>
+        `;
       } else {
-        // Link was provided but coords couldn't be extracted — skip, don't guess
-        continue;
+        div.className = "card";
+        div.innerHTML = `
+          <div>
+            <strong>${item.time}</strong> - ${item.activity}
+          </div>
+          <button class="delete-btn">X</button>
+        `;
       }
 
-      if (lat && lon) {
-        const marker = L.marker([lat, lon])
-          .addTo(map)
-          .bindPopup(`<b>${item.activity}</b><br>${item.time}`);
-        markers.push(marker);
-        bounds.push([lat, lon]);
-        names.push(item.activity);
-      }
-    }
-  }
+      div.querySelector(".delete-btn").onclick = () => {
+        schedule[day].splice(index, 1);
+        saveData();
+      };
 
-  if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [50, 50] });
-  }
-
-  if (names.length > 1) {
-    const url = `https://www.google.com/maps/dir/${names.map(n => encodeURIComponent(n)).join("/")}`;
-    const btn = document.getElementById("routeBtn");
-    btn.href = url;
-    btn.style.display = "block";
-  }
+      container.appendChild(div);
+    });
+  });
 }
-
-// START
-render();
