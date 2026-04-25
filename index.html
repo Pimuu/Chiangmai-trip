@@ -9,7 +9,6 @@
 </head>
 
 <body>
-
 <header>
   <h1>Chiang Mai Trip Planner</h1>
   <p>3 Days 2 Nights</p>
@@ -17,7 +16,6 @@
 </header>
 
 <div class="container">
-
   <section class="controls">
     <h2>Add Plan</h2>
 
@@ -30,7 +28,7 @@
     <input type="time" id="time">
     <input type="text" id="activity" placeholder="Place name">
     <input type="text" id="mapLink" placeholder="Google Maps link">
-    <input type="text" id="note" placeholder="Travel note (bus, taxi...)">
+    <input type="text" id="note" placeholder="Travel note">
 
     <button id="addBtn">➕ Add Activity</button>
     <button id="addNoteBtn">🚌 Add Travel Note</button>
@@ -50,13 +48,10 @@
   </section>
 
   <div id="map"></div>
-
-  <a id="routeBtn" target="_blank">🚗 Open Route in Google Maps</a>
-
+  <a id="routeBtn" target="_blank">🚗 Open Route</a>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="script.js"></script>
-
+<script type="module" src="script.js"></script>
 </body>
 </html>
