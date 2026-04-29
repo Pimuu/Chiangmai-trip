@@ -10,19 +10,16 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <header>
   <div class="header-inner">
     <div class="header-text">
       <h1>Chiang Mai</h1>
-      <p>3 Days · 2 Nights · Trip Planner</p>
+      <p>4 Days · 3 Nights · Trip Planner</p>
     </div>
     <a href="expense.html" class="nav-btn">💰 Expenses</a>
   </div>
 </header>
-
 <div class="container">
-
   <section class="controls">
     <h2>Add to Schedule</h2>
     <div class="form-grid">
@@ -30,6 +27,7 @@
         <option value="day1">Day 1</option>
         <option value="day2">Day 2</option>
         <option value="day3">Day 3</option>
+        <option value="day4">Day 4</option>
       </select>
       <input type="time" id="time">
       <input type="text" id="activity" placeholder="Place name">
@@ -41,7 +39,6 @@
       <button id="addNoteBtn" class="btn-secondary">🚌 Add Travel Note</button>
     </div>
   </section>
-
   <section class="timeline">
     <h2>Schedule</h2>
     <div class="day-block">
@@ -56,15 +53,15 @@
       <h3>📅 Day 3</h3>
       <div id="day3"></div>
     </div>
+    <div class="day-block">
+      <h3>📅 Day 4</h3>
+      <div id="day4"></div>
+    </div>
   </section>
-
   <div id="map"></div>
   <a id="routeBtn" target="_blank" style="display:none">🗺️ Open Full Route in Google Maps</a>
-
 </div>
-
 <div id="toast" class="toast"></div>
-
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module" src="script.js"></script>
 </body>
