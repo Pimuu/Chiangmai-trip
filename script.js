@@ -16,7 +16,7 @@ const db  = getFirestore(app);
 const tripRef = doc(db, "trips", "chiang-mai");
 
 // ── Local state ───────────────────────────────────────────
-let schedule = { day1: [], day2: [], day3: [] };
+let schedule = { day1: [], day2: [], day3: [], day4: [] };
 let dataLoaded = false; // guard: don't save until first load is done
 
 // ── Map init ──────────────────────────────────────────────
@@ -28,20 +28,18 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let markers = [];
 
 // ── Show loading state ────────────────────────────────────
-["day1","day2","day3"].forEach(day => {
+["day1","day2","day3","day4"].forEach(day => {
   const container = document.getElementById(day);
   container.innerHTML = `<div class="empty-msg">⏳ Loading...</div>`;
 });
 
 // ── Initial load via getDoc (fast, one-time) ──────────────
-// This is the key fix: getDoc fetches immediately on refresh
-// instead of waiting for the slower onSnapshot connection
 async function initialLoad() {
   try {
     const snap = await getDoc(tripRef);
     if (snap.exists()) {
       schedule = snap.data();
-      ["day1","day2","day3"].forEach(d => {
+      ["day1","day2","day3","day4"].forEach(d => {
         if (!schedule[d]) schedule[d] = [];
       });
     }
@@ -56,13 +54,11 @@ async function initialLoad() {
 initialLoad();
 
 // ── Real-time listener — keeps all devices in sync ────────
-// Fires after the initial load; updates UI when another
-// device makes a change
 onSnapshot(tripRef, (snap) => {
-  if (!dataLoaded) return; // wait for initialLoad to finish first
+  if (!dataLoaded) return;
   if (snap.exists()) {
     schedule = snap.data();
-    ["day1","day2","day3"].forEach(d => {
+    ["day1","day2","day3","day4"].forEach(d => {
       if (!schedule[d]) schedule[d] = [];
     });
     render();
@@ -71,7 +67,7 @@ onSnapshot(tripRef, (snap) => {
 
 // ── Save to Firestore ─────────────────────────────────────
 async function saveData() {
-  if (!dataLoaded) return; // safety guard
+  if (!dataLoaded) return;
   try {
     await setDoc(tripRef, schedule);
     showToast("✅ Saved & synced");
@@ -136,7 +132,7 @@ function clearInputs() {
 
 // ── Render schedule ───────────────────────────────────────
 function render() {
-  ["day1", "day2", "day3"].forEach(day => {
+  ["day1", "day2", "day3", "day4"].forEach(day => {
     const container = document.getElementById(day);
     container.innerHTML = "";
 
@@ -196,7 +192,7 @@ async function updateMap() {
   const bounds = [];
   const names  = [];
 
-  for (const day of ["day1", "day2", "day3"]) {
+  for (const day of ["day1", "day2", "day3", "day4"]) {
     for (const item of (schedule[day] || [])) {
       if (item.type === "note") continue;
 
